@@ -20,7 +20,7 @@ void process_image_callback(const sensor_msgs::Image img)
 {
     
     int white_pixel = 255;
-     ROS_INFO("in process_image_callback");
+  //   ROS_INFO("in process_image_callback");
     // TODO: Loop through each pixel in the image and check if there's a bright white one
     // Then, identify if this pixel falls in the left, mid, or right side of the image
     // Depending on the white ball position, call the drive_bot function and pass velocities to it
@@ -28,12 +28,16 @@ void process_image_callback(const sensor_msgs::Image img)
 
     int img_height = img.height;
     int img_width = img.width;
-    printf("the img height width:%d,%d\n",img_height,img_width);
+  //  printf("the img height width:%d,%d\n",img_height,img_width);
     int numWhitePixel = 0;
+    int totalPixels = img_height*img_width;
     int whitePos = 0;
     for(int i=0;i<img_height;i++){
         for(int j=0;j<img_width;j++)
         {
+            // here use index of row * step, to get to the position of 
+            // start of row data, so finally I already traverse all of
+            // the picture data
             int index = i*img.step+j*3;
             int red_channel = img.data[index];
             int green_channel = img.data[index+1];
@@ -45,7 +49,7 @@ void process_image_callback(const sensor_msgs::Image img)
             }
         }
     }
-    printf("whitePos and num pixel:%d,%d\n",whitePos,numWhitePixel);
+   // printf("whitePos and num pixel:%d,%d\n",whitePos,numWhitePixel);
     if(numWhitePixel==0)
     {
         drive_robot(0.0,0.0);
@@ -62,7 +66,19 @@ void process_image_callback(const sensor_msgs::Image img)
     }
     else
     {
-        drive_robot(0.5,0.0);
+        float ratio = (float)( 1.0f * numWhitePixel / totalPixels );
+        printf("The ratio is:%f\n",ratio);
+        if(ratio >= 0.5f)
+        {
+            //already near enough,then stop
+            drive_robot(0.0,0.0);
+        }
+        else
+        {
+            drive_robot(0.5,0.0);
+        }
+        
+        
     }
     return;
 
